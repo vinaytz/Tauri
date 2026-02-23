@@ -1,34 +1,20 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // Tauri Feature Explorer — Frontend (Vanilla JS)
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-//
-// KEY CONCEPT: With `withGlobalTauri: true` in tauri.conf.json,
-// Tauri injects APIs into `window.__TAURI__`.
-//   - invoke()  → call Rust #[tauri::command] functions
-//   - listen()  → listen for events emitted from Rust
-//   - emit()    → send events from JS to Rust
-//
-// This is the bridge between your JS frontend and Rust backend.
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 const { invoke } = window.__TAURI__.core;
 const { listen } = window.__TAURI__.event;
 
-// ─────────────────────────────────────────────
-// Helper: show result in a result-box element
-// ─────────────────────────────────────────────
+// ─── Helpers ───
 function showResult(el, html, isError = false) {
   el.innerHTML = html;
   el.classList.remove("hidden", "error", "success");
   el.classList.add(isError ? "error" : "success");
 }
 
-// ─────────────────────────────────────────────
-// Helper: add an event to the event log
-// ─────────────────────────────────────────────
 function logEvent(message) {
   const container = document.getElementById("event-messages");
-  const placeholder = container.querySelector(".placeholder");
+  const placeholder = container.querySelector(".console-placeholder");
   if (placeholder) placeholder.remove();
 
   const entry = document.createElement("div");
@@ -38,9 +24,6 @@ function logEvent(message) {
   container.prepend(entry);
 }
 
-// ─────────────────────────────────────────────
-// Helper: render notes list
-// ─────────────────────────────────────────────
 function renderNotes(notes) {
   const container = document.getElementById("notes-list");
   if (notes.length === 0) {
@@ -57,13 +40,12 @@ function renderNotes(notes) {
     )
     .join("");
 
-  // Attach delete handlers
   container.querySelectorAll(".note-delete").forEach((btn) => {
     btn.addEventListener("click", async () => {
       const id = parseInt(btn.dataset.id);
       const updatedNotes = await invoke("delete_note", { id });
       renderNotes(updatedNotes);
-      logEvent(`🗑️ Note #${id} deleted via Rust command`);
+      logEvent(`Note #${id} deleted`);
     });
   });
 }
@@ -74,11 +56,53 @@ function escapeHtml(text) {
   return div.innerHTML;
 }
 
+// ─── Sidebar Navigation ───
+const panelNames = {
+  commands: "Commands",
+  sysinfo: "System",
+  state: "State",
+  notes: "Notes",
+  events: "Events",
+  errors: "Errors",
+};
+
+function switchPanel(name) {
+  // Update nav items
+  document.querySelectorAll(".nav-item").forEach((btn) => {
+    btn.classList.toggle("active", btn.dataset.panel === name);
+  });
+
+  // Update panels
+  document.querySelectorAll(".panel").forEach((p) => {
+    p.classList.toggle("active", p.id === `panel-${name}`);
+  });
+
+  // Update toolbar heading
+  document.getElementById("toolbar-heading").textContent = panelNames[name] || name;
+
+  // Update toolbar icon — copy the SVG from the active nav item
+  const activeNav = document.querySelector(`.nav-item[data-panel="${name}"]`);
+  if (activeNav) {
+    const svg = activeNav.querySelector("svg");
+    if (svg) {
+      document.getElementById("toolbar-icon").innerHTML = svg.outerHTML;
+    }
+  }
+
+  // Update status bar
+  document.getElementById("status-panel").textContent = panelNames[name] || name;
+}
+
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// Initialize everything when the DOM is ready
+// Initialize
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 window.addEventListener("DOMContentLoaded", async () => {
+  // ─── Sidebar click handlers ───
+  document.querySelectorAll(".nav-item").forEach((btn) => {
+    btn.addEventListener("click", () => switchPanel(btn.dataset.panel));
+  });
+
   // ─── SECTION 1: Greet Command ───
   const greetForm = document.getElementById("greet-form");
   const greetInput = document.getElementById("greet-input");
@@ -87,9 +111,8 @@ window.addEventListener("DOMContentLoaded", async () => {
   greetForm.addEventListener("submit", async (e) => {
     e.preventDefault();
     const name = greetInput.value || "World";
-    // invoke() calls the Rust #[tauri::command] fn greet()
     const message = await invoke("greet", { name });
-    showResult(greetResult, `🦀 <strong>${message}</strong>`);
+    showResult(greetResult, `<strong>${message}</strong>`);
   });
 
   // ─── SECTION 2: System Info ───
@@ -97,7 +120,6 @@ window.addEventListener("DOMContentLoaded", async () => {
   const sysinfoResult = document.getElementById("sysinfo-result");
 
   sysinfoBtn.addEventListener("click", async () => {
-    // invoke() returns the serialized SystemInfo struct as a JS object!
     const info = await invoke("get_system_info");
     showResult(
       sysinfoResult,
@@ -117,11 +139,9 @@ window.addEventListener("DOMContentLoaded", async () => {
   const counterDec = document.getElementById("counter-dec");
   const counterReset = document.getElementById("counter-reset");
 
-  // Fetch initial value from Rust state
   counterDisplay.textContent = await invoke("get_counter");
 
   counterInc.addEventListener("click", async () => {
-    // delta: +1 is passed to Rust, which updates its Mutex<i32> state
     counterDisplay.textContent = await invoke("update_counter", { delta: 1 });
   });
 
@@ -137,7 +157,6 @@ window.addEventListener("DOMContentLoaded", async () => {
   const noteForm = document.getElementById("note-form");
   const noteInput = document.getElementById("note-input");
 
-  // Load any existing notes
   const initialNotes = await invoke("get_notes");
   renderNotes(initialNotes);
 
@@ -145,28 +164,25 @@ window.addEventListener("DOMContentLoaded", async () => {
     e.preventDefault();
     const text = noteInput.value.trim();
     if (!text) return;
-    // Rust receives the string, creates a Note struct, returns Vec<Note>
     const notes = await invoke("add_note", { text });
     renderNotes(notes);
     noteInput.value = "";
-    logEvent(`📝 Note added via Rust command`);
+    logEvent(`Note added`);
   });
 
   // ─── SECTION 5: File I/O + Events ───
   const saveBtn = document.getElementById("save-btn");
   const loadBtn = document.getElementById("load-btn");
 
-  // Listen for events emitted from Rust!
-  // This is the EVENT SYSTEM — Rust pushes data to JS.
   await listen("file-operation", (event) => {
-    logEvent(`📁 <strong>${event.payload}</strong>`);
+    logEvent(`<strong>${event.payload}</strong>`);
   });
 
   saveBtn.addEventListener("click", async () => {
     try {
       await invoke("save_notes_to_file");
     } catch (err) {
-      logEvent(`❌ Error: ${err}`);
+      logEvent(`Error: ${err}`);
     }
   });
 
@@ -175,7 +191,7 @@ window.addEventListener("DOMContentLoaded", async () => {
       const notes = await invoke("load_notes_from_file");
       renderNotes(notes);
     } catch (err) {
-      logEvent(`❌ Error: ${err}`);
+      logEvent(`Error: ${err}`);
     }
   });
 
@@ -190,12 +206,10 @@ window.addEventListener("DOMContentLoaded", async () => {
     const a = parseFloat(divideA.value) || 0;
     const b = parseFloat(divideB.value) || 0;
     try {
-      // When Rust returns Ok(value) → promise resolves
       const result = await invoke("divide", { a, b });
-      showResult(divideResult, `✅ ${a} ÷ ${b} = <strong>${result}</strong>`);
+      showResult(divideResult, `${a} ÷ ${b} = <strong>${result}</strong>`);
     } catch (err) {
-      // When Rust returns Err(msg) → promise rejects, caught here!
-      showResult(divideResult, `❌ <strong>${err}</strong>`, true);
+      showResult(divideResult, `<strong>${err}</strong>`, true);
     }
   });
 });
