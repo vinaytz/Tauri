@@ -1,0 +1,450 @@
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   Tauri Feature Explorer — Styles
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+:root {
+  --bg: #0f1117;
+  --card-bg: #1a1d27;
+  --card-border: #2a2d3a;
+  --text: #e1e4ed;
+  --text-muted: #8b8fa3;
+  --accent: #ffc131;
+  --accent-dim: #ffc13120;
+  --success: #4ade80;
+  --success-bg: #4ade8015;
+  --error: #f87171;
+  --error-bg: #f8717115;
+  --blue: #60a5fa;
+  --blue-dim: #60a5fa20;
+
+  font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--text);
+  background-color: var(--bg);
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+}
+
+/* ─── Header ─── */
+header {
+  text-align: center;
+  padding: 2.5rem 1rem 1.5rem;
+  background: linear-gradient(180deg, #1a1d27 0%, var(--bg) 100%);
+  border-bottom: 1px solid var(--card-border);
+}
+
+header h1 {
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin: 0 0 0.3rem;
+  background: linear-gradient(135deg, var(--accent), #ff8a00);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.subtitle {
+  color: var(--text-muted);
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+/* ─── Dashboard Grid ─── */
+.dashboard {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 3rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+/* ─── Cards ─── */
+.card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  padding: 1.5rem;
+  transition: border-color 0.2s;
+}
+
+.card:hover {
+  border-color: #3a3d4a;
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.card-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: var(--accent-dim);
+  color: var(--accent);
+  font-weight: 700;
+  font-size: 0.85rem;
+  flex-shrink: 0;
+}
+
+.card-header h2 {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 600;
+}
+
+/* ─── Concept descriptions ─── */
+.concept {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin: 0 0 1rem;
+  line-height: 1.65;
+  padding: 0.75rem;
+  background: var(--blue-dim);
+  border-radius: 8px;
+  border-left: 3px solid var(--blue);
+}
+
+.concept code {
+  background: #ffffff12;
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  font-family: "Fira Code", "Consolas", monospace;
+  font-size: 0.8rem;
+  color: var(--blue);
+}
+
+.hint {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin: 0.5rem 0 0;
+  font-style: italic;
+}
+
+/* ─── Demo areas ─── */
+.demo-area {
+  margin-bottom: 0.75rem;
+}
+
+.inline-form {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+input {
+  background: #0f1117;
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  color: var(--text);
+  padding: 0.55rem 0.8rem;
+  font-size: 0.9rem;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.2s;
+  flex: 1;
+  min-width: 0;
+}
+
+input:focus {
+  border-color: var(--accent);
+}
+
+input::placeholder {
+  color: #555;
+}
+
+button {
+  background: var(--accent);
+  color: #000;
+  border: none;
+  border-radius: 8px;
+  padding: 0.55rem 1.1rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: opacity 0.15s, transform 0.1s;
+  white-space: nowrap;
+}
+
+button:hover {
+  opacity: 0.9;
+}
+
+button:active {
+  transform: scale(0.97);
+}
+
+/* ─── Result boxes ─── */
+.result-box {
+  margin-top: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  animation: fadeIn 0.2s ease;
+}
+
+.result-box.hidden {
+  display: none;
+}
+
+.result-box.success {
+  background: var(--success-bg);
+  border: 1px solid #4ade8030;
+  color: var(--success);
+}
+
+.result-box.error {
+  background: var(--error-bg);
+  border: 1px solid #f8717130;
+  color: var(--error);
+}
+
+/* ─── System info table ─── */
+.info-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.info-table td {
+  padding: 0.35rem 0;
+  border-bottom: 1px solid #ffffff08;
+}
+
+.info-table td:first-child {
+  color: var(--text-muted);
+  width: 130px;
+  font-size: 0.85rem;
+}
+
+/* ─── Counter ─── */
+.counter-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.counter-value {
+  font-size: 2.5rem;
+  font-weight: 700;
+  min-width: 80px;
+  text-align: center;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+
+.counter-btn {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  padding: 0;
+  font-size: 1.2rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.counter-btn-small {
+  background: transparent;
+  border: 1px solid var(--card-border);
+  color: var(--text-muted);
+  border-radius: 6px;
+  padding: 0.35rem 0.8rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.counter-btn-small:hover {
+  border-color: var(--text-muted);
+  color: var(--text);
+}
+
+/* ─── Notes ─── */
+.notes-container {
+  margin-top: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.notes-container .placeholder {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  font-style: italic;
+  text-align: center;
+  padding: 1rem;
+}
+
+.note-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #0f1117;
+  padding: 0.6rem 0.8rem;
+  border-radius: 8px;
+  border: 1px solid var(--card-border);
+  animation: fadeIn 0.15s ease;
+}
+
+.note-text {
+  font-size: 0.9rem;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.note-delete {
+  background: transparent;
+  color: var(--text-muted);
+  border: none;
+  padding: 0.2rem 0.5rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.note-delete:hover {
+  color: var(--error);
+  background: var(--error-bg);
+}
+
+/* ─── Button row ─── */
+.btn-row {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+/* ─── Event log ─── */
+.event-log {
+  margin-top: 0.75rem;
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.event-log-header {
+  background: #0f1117;
+  padding: 0.5rem 0.8rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--card-border);
+}
+
+.event-messages {
+  padding: 0.5rem 0.8rem;
+  max-height: 160px;
+  overflow-y: auto;
+  font-size: 0.8rem;
+}
+
+.event-messages .placeholder {
+  color: #555;
+  margin: 0.5rem 0;
+  font-style: italic;
+}
+
+.event-entry {
+  padding: 0.3rem 0;
+  border-bottom: 1px solid #ffffff06;
+  animation: fadeIn 0.2s ease;
+}
+
+.event-time {
+  color: var(--text-muted);
+  margin-right: 0.5rem;
+  font-family: "Fira Code", "Consolas", monospace;
+  font-size: 0.75rem;
+}
+
+/* ─── Divider symbol ─── */
+.divider {
+  font-size: 1.2rem;
+  color: var(--text-muted);
+  padding: 0 0.25rem;
+}
+
+/* ─── Code hints (collapsible) ─── */
+.code-hint {
+  margin-top: 0.5rem;
+}
+
+.code-hint summary {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  user-select: none;
+  padding: 0.3rem 0;
+}
+
+.code-hint summary:hover {
+  color: var(--text);
+}
+
+.code-hint pre {
+  background: #0a0c12;
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  padding: 0.8rem 1rem;
+  overflow-x: auto;
+  margin: 0.4rem 0 0;
+}
+
+.code-hint code {
+  font-family: "Fira Code", "Consolas", monospace;
+  font-size: 0.78rem;
+  color: #c9d1d9;
+  line-height: 1.55;
+}
+
+/* ─── Footer ─── */
+footer {
+  text-align: center;
+  padding: 1.5rem 1rem;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  border-top: 1px solid var(--card-border);
+}
+
+/* ─── Scrollbar ─── */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 3px;
+}
+
+/* ─── Animations ─── */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}

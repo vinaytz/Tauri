@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" href="styles.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tauri Feature Explorer</title>
+    <script type="module" src="/main.js" defer></script>
+  </head>
+
+  <body>
+    <header>
+      <h1>🦀 Tauri Feature Explorer</h1>
+      <p class="subtitle">Learn how Tauri works by interacting with each concept below</p>
+    </header>
+
+    <main class="dashboard">
+
+      <!-- ═══ SECTION 1: Commands ═══ -->
+      <section class="card" id="card-commands">
+        <div class="card-header">
+          <span class="card-number">1</span>
+          <h2>Commands</h2>
+        </div>
+        <p class="concept">
+          <strong>Concept:</strong> The <code>#[tauri::command]</code> macro turns a Rust function
+          into something you can call from JavaScript via <code>invoke("command_name", { args })</code>.
+          Arguments are auto-deserialized and return values auto-serialized.
+        </p>
+        <div class="demo-area">
+          <form id="greet-form" class="inline-form">
+            <input id="greet-input" placeholder="Enter your name..." />
+            <button type="submit">Greet from Rust</button>
+          </form>
+          <div id="greet-result" class="result-box hidden"></div>
+        </div>
+        <details class="code-hint">
+          <summary>Show Rust code</summary>
+          <pre><code>#[tauri::command]
+fn greet(name: &str) -> String {
+    format!("Hello, {}! Greeted from Rust!", name)
+}
+
+// JS side:
+// await invoke("greet", { name: "World" })</code></pre>
+        </details>
+      </section>
+
+      <!-- ═══ SECTION 2: System Info ═══ -->
+      <section class="card" id="card-sysinfo">
+        <div class="card-header">
+          <span class="card-number">2</span>
+          <h2>System Info from Rust</h2>
+        </div>
+        <p class="concept">
+          <strong>Concept:</strong> Commands can return complex structs. Tauri uses
+          <code>serde</code> to serialize Rust structs into JSON automatically.
+          The JS side receives a plain JavaScript object.
+        </p>
+        <div class="demo-area">
+          <button id="sysinfo-btn">Fetch System Info</button>
+          <div id="sysinfo-result" class="result-box hidden"></div>
+        </div>
+        <details class="code-hint">
+          <summary>Show Rust code</summary>
+          <pre><code>#[derive(Serialize)]
+struct SystemInfo {
+    os_name: String,
+    arch: String,
+    num_cpus: usize,
+}
+
+#[tauri::command]
+fn get_system_info() -> SystemInfo { ... }</code></pre>
+        </details>
+      </section>
+
+      <!-- ═══ SECTION 3: State Management ═══ -->
+      <section class="card" id="card-state">
+        <div class="card-header">
+          <span class="card-number">3</span>
+          <h2>State Management</h2>
+        </div>
+        <p class="concept">
+          <strong>Concept:</strong> Tauri manages shared state on the Rust side using
+          <code>.manage(AppState { ... })</code>. Commands inject it via
+          <code>State&lt;'_, AppState&gt;</code>. Wrap mutable data in <code>Mutex</code>
+          for thread safety. State persists for the app's entire lifetime.
+        </p>
+        <div class="demo-area">
+          <div class="counter-row">
+            <button id="counter-dec" class="counter-btn">− 1</button>
+            <span id="counter-display" class="counter-value">0</span>
+            <button id="counter-inc" class="counter-btn">+ 1</button>
+            <button id="counter-reset" class="counter-btn-small">Reset</button>
+          </div>
+          <p class="hint">This counter lives in Rust memory (Mutex&lt;i32&gt;), not in JavaScript.</p>
+        </div>
+        <details class="code-hint">
+          <summary>Show Rust code</summary>
+          <pre><code>struct AppState {
+    counter: Mutex&lt;i32&gt;,
+}
+
+#[tauri::command]
+fn update_counter(delta: i32, state: State&lt;'_, AppState&gt;) -> i32 {
+    let mut counter = state.counter.lock().unwrap();
+    *counter += delta;
+    *counter
+}</code></pre>
+        </details>
+      </section>
+
+      <!-- ═══ SECTION 4: Complex Data ═══ -->
+      <section class="card" id="card-notes">
+        <div class="card-header">
+          <span class="card-number">4</span>
+          <h2>Complex Data (Notes CRUD)</h2>
+        </div>
+        <p class="concept">
+          <strong>Concept:</strong> Tauri seamlessly passes complex data between JS and Rust.
+          Structs, Vecs, nested objects — all auto-serialized via <code>serde</code>.
+          Here we manage a <code>Vec&lt;Note&gt;</code> in Rust state.
+        </p>
+        <div class="demo-area">
+          <form id="note-form" class="inline-form">
+            <input id="note-input" placeholder="Write a note..." />
+            <button type="submit">Add Note</button>
+          </form>
+          <div id="notes-list" class="notes-container"></div>
+        </div>
+        <details class="code-hint">
+          <summary>Show Rust code</summary>
+          <pre><code>#[derive(Serialize, Deserialize, Clone)]
+struct Note { id: usize, text: String }
+
+#[tauri::command]
+fn add_note(text: String, state: State&lt;'_, AppState&gt;) -> Vec&lt;Note&gt; {
+    let mut notes = state.notes.lock().unwrap();
+    notes.push(Note { id, text });
+    notes.clone()
+}</code></pre>
+        </details>
+      </section>
+
+      <!-- ═══ SECTION 5: File I/O + Events ═══ -->
+      <section class="card" id="card-events">
+        <div class="card-header">
+          <span class="card-number">5</span>
+          <h2>File I/O + Events</h2>
+        </div>
+        <p class="concept">
+          <strong>Concept:</strong> Rust can read/write files using <code>std::fs</code>.
+          After operations, Rust can <em>emit events</em> to the frontend via
+          <code>app.emit("event-name", payload)</code>. The JS side listens with
+          <code>listen("event-name", callback)</code>. This is a push mechanism — Rust notifies JS.
+        </p>
+        <div class="demo-area">
+          <div class="btn-row">
+            <button id="save-btn">💾 Save Notes to Disk</button>
+            <button id="load-btn">📂 Load Notes from Disk</button>
+          </div>
+          <div id="event-log" class="event-log">
+            <div class="event-log-header">📡 Event Log (Rust → JS)</div>
+            <div id="event-messages" class="event-messages">
+              <p class="placeholder">Waiting for events from Rust...</p>
+            </div>
+          </div>
+        </div>
+        <details class="code-hint">
+          <summary>Show Rust code</summary>
+          <pre><code>use tauri::Emitter;
+
+#[tauri::command]
+fn save_notes_to_file(
+    app: tauri::AppHandle,
+    state: State&lt;'_, AppState&gt;,
+) -> Result&lt;String, String&gt; {
+    // ... save file ...
+    app.emit("file-operation", &msg); // push to JS!
+    Ok(msg)
+}
+
+// JS side:
+// listen("file-operation", (event) => { ... })</code></pre>
+        </details>
+      </section>
+
+      <!-- ═══ SECTION 6: Error Handling ═══ -->
+      <section class="card" id="card-errors">
+        <div class="card-header">
+          <span class="card-number">6</span>
+          <h2>Error Handling</h2>
+        </div>
+        <p class="concept">
+          <strong>Concept:</strong> Commands can return <code>Result&lt;T, String&gt;</code>.
+          <code>Ok(value)</code> resolves the JS promise. <code>Err(msg)</code> rejects it —
+          caught with <code>.catch()</code> or <code>try/catch</code> in <code>async/await</code>.
+        </p>
+        <div class="demo-area">
+          <form id="divide-form" class="inline-form">
+            <input id="divide-a" type="number" placeholder="a" value="10" style="width:60px" />
+            <span class="divider">÷</span>
+            <input id="divide-b" type="number" placeholder="b" value="3" style="width:60px" />
+            <button type="submit">Divide</button>
+          </form>
+          <div id="divide-result" class="result-box hidden"></div>
+          <p class="hint">Try dividing by 0 to see Rust send an error!</p>
+        </div>
+        <details class="code-hint">
+          <summary>Show Rust code</summary>
+          <pre><code>#[tauri::command]
+fn divide(a: f64, b: f64) -> Result&lt;f64, String&gt; {
+    if b == 0.0 {
+        Err("Cannot divide by zero!".to_string())
+    } else {
+        Ok(a / b)
+    }
+}</code></pre>
+        </details>
+      </section>
+
+    </main>
+
+    <footer>
+      <p>Built with Tauri 2 + Rust + Vanilla JS — No frontend framework needed!</p>
+    </footer>
+  </body>
+</html>
